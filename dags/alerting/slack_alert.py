@@ -16,7 +16,7 @@ from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperato
 #############################################################################
 
 
-def task_fail_slack_alert(dag):
+def task_fail_slack_alert(context):
     """
     This callback function would be called if any of the tasks fail in airflow DAG
     which would inturn send a message to a slack channel.
@@ -36,8 +36,9 @@ def task_fail_slack_alert(dag):
             """.format(
             task=context.get('task_instance').task_id,
             dag=context.get('task_instance').dag_id,
-            exec_date=context.get('execution_date')
-
+            ti=context.get('task_instance'),
+            exec_date=context.get('execution_date'),
+            log_url=context.get('task_instance').log_url,
         )
 
 
@@ -49,6 +50,7 @@ def task_fail_slack_alert(dag):
         message=slack_msg)
 
     # Execute the Slack WebHook Dag
+    return failed_alert.execute(context=context)
 
 
 def task_success_slack_alert(dag):
