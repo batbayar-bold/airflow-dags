@@ -18,7 +18,7 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'start_date': datetime(2023, 5, 12),
-    'email': ['airflow@example.com'],
+    'email': ['XXX'],
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -27,30 +27,30 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='Netflix_Data_Analytics',
+    dag_id='Data_Analytics',
     default_args=default_args,
-    description='This dag runs data analytics on top of netflix datasets',
+    description='This dag runs data analytics on top of real datasets',
     schedule_interval=timedelta(days=1),
 )
 
-credits_sensor = S3KeySensor(
-    task_id='credits_rawfile_sensor',
+data2_sensor = S3KeySensor(
+    task_id='data2_rawfile_sensor',
     poke_interval=60 * 5,
     timeout=60 * 60 * 24 * 7,
-    bucket_key='raw_files/credits.csv',
+    bucket_key='raw_files/data2.csv',
     wildcard_match=True,
-    bucket_name='netflix-data-analytics-160623',
+    bucket_name='data-analytics',
     aws_conn_id='aws_default',
     dag=dag
 )
 
-titles_sensor = S3KeySensor(
-    task_id='titles_rawfile_sensor',
+data1_sensor = S3KeySensor(
+    task_id='data1_rawfile_sensor',
     poke_interval=60 * 5,
     timeout=60 * 60 * 24 * 7,
-    bucket_key='raw_files/titles.csv',
+    bucket_key='raw_files/data1.csv',
     wildcard_match=True,
-    bucket_name='netflix-data-analytics-160623',
+    bucket_name='data-analytics',
     aws_conn_id='aws_default',
     dag=dag
 )
@@ -82,4 +82,4 @@ slack_success_alert = task_success_slack_alert(dag=dag)
 start_task = DummyOperator(task_id='start_task', dag=dag)
 end_task = DummyOperator(task_id='end_task', dag=dag)
 
-start_task >> credits_sensor >> titles_sensor >> load_data_snowflake >> run_stage_models  >> run_fact_dim_models >> run_test_cases >> slack_success_alert >> end_task
+start_task >> data2_sensor >> data1_sensor >> load_data_snowflake >> run_stage_models  >> run_fact_dim_models >> run_test_cases >> slack_success_alert >> end_task

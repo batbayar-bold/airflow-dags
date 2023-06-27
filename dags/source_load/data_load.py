@@ -22,7 +22,7 @@ def run_script():
       conn = snow.connect(user=sf_username,
       password=sf_password,
       account=sf_account,
-      warehouse="COMPUTE_WH",
+      warehouse="XXX_WH",
       database="PROD",
       schema="DBT_RAW")
       cursor = conn.cursor()
@@ -32,31 +32,29 @@ def run_script():
    # Module to truncate the table if exists. This will ensure duplicate load doesn't happen
    def truncate_table():
       cur,conn=create_connection()
-      sql_titles = "TRUNCATE TABLE IF EXISTS TITLES_RAW"
-      sql_credits = "TRUNCATE TABLE IF EXISTS CREDITS_RAW"
-      cur.execute(sql_titles)
-      cur.execute(sql_credits)
+      sql_data1 = "TRUNCATE TABLE IF EXISTS DATA1_RAW"
+      sql_data2 = "TRUNCATE TABLE IF EXISTS DATA2_RAW"
+      cur.execute(sql_data1)
+      cur.execute(sql_data2)
       print('Tables truncated')
 
    #Module to read csv file and load data in Snowflake. Table is created dynamically
    def load_data():
-      titles_file = s3.get_object(Bucket='netflix-data-analytics-160623', Key='raw_files/titles.csv')
-      credits_file = s3.get_object(Bucket='netflix-data-analytics-160623', Key='raw_files/credits.csv')
+      data1_file = s3.get_object(Bucket='data-analytics', Key='raw_files/data1.csv')
+      data2_file = s3.get_object(Bucket='data-analytics', Key='raw_files/data2.csv')
       
       cur,conn=create_connection()
-      #titles_file = r"C:/Users/Aditya/OneDrive/Desktop/dbt_Training/Netflix_Dataset/titles.csv" # <- Replace with your path.
       delimiter = "," # Replace if you're using a different delimiter.
-      #credits_file=r"C:/Users/Aditya/OneDrive/Documents/GitHub/dbt-code/datasets/credits.csv"
 
-      titles_df = pd.read_csv(titles_file['Body'], sep = delimiter)
-      print("Titles file read")
-      credits_df = pd.read_csv(credits_file['Body'], sep = delimiter)
-      print("Credits file read")
+      data1_df = pd.read_csv(data1_file['Body'], sep = delimiter)
+      print("Data1 file read")
+      data2_df = pd.read_csv(data2_file['Body'], sep = delimiter)
+      print("Data2 file read")
 
-      write_pandas(conn, titles_df, "TITLES",auto_create_table=True)
-      print('Titles file loaded')
-      write_pandas(conn, credits_df, "CREDITS",auto_create_table=True)
-      print('Credits file loaded')
+      write_pandas(conn, data1_df, "TITLES",auto_create_table=True)
+      print('Data1 file loaded')
+      write_pandas(conn, data2_df, "CREDITS",auto_create_table=True)
+      print('Data2 file loaded')
 
       cur = conn.cursor()
 
